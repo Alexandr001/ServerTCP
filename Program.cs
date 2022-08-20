@@ -1,8 +1,10 @@
 ﻿
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using Server.FileServer;
+using File = Server.FileServer.File;
 
 namespace Server
 {
@@ -14,27 +16,34 @@ namespace Server
 	
 	public class Program
 	{
+		private static BinaryWriter _writer;
+		private static BinaryReader _reader;
+		private static TcpListener _listener;
+		private static NetworkStream _stream;
+		private static TcpClient _client;
 		private const int PORT = 8888;
 		
 		public static void Main(string[] args)
 		{
-			TcpListener listener = null;
 			try {
 				IPAddress localAddr = IPAddress.Parse("127.0.0.1");
-				listener = new TcpListener(localAddr, PORT);
-				listener.Start();
+				_listener = new TcpListener(localAddr, PORT);
+				_listener.Start();
 
 				while (true) {
 					Console.WriteLine("Ожидание подключений... ");
 
 					// получаем входящее подключение
-					TcpClient client = listener.AcceptTcpClient();
+					_client = _listener.AcceptTcpClient();
 					Console.WriteLine("Подключен клиент. Выполнение запроса...");
 
 					// получаем сетевой поток для чтения и записи
-					NetworkStream stream = client.GetStream();
+					_stream = _client.GetStream();
+					_writer = new BinaryWriter(_stream);
+					_reader = new BinaryReader(_stream);
 					
-					Server server = new Server(stream);
+					
+					Server server = new Server(_writer, _reader);
 					int operatingMode = server.ReadMessageInt();
 					string listFiles = null;
 					File file = null;
@@ -56,7 +65,12 @@ namespace Server
 				Console.WriteLine(e);
 				throw;
 			} finally {
-				listener?.Stop();
+				_listener?.Stop();
+				_stream.Flush();
+				_stream.Close();
+				_reader.Close();
+				_writer.Close();
+				
 			}
 		}
 	}

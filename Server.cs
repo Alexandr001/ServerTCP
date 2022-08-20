@@ -7,43 +7,38 @@ namespace Server
 {
 	public class Server
 	{
-		private readonly NetworkStream _stream;
+		private readonly BinaryWriter _writer;
+		private readonly BinaryReader _reader;
 
-		public Server(NetworkStream stream)
+		public Server(BinaryWriter writer, BinaryReader reader)
 		{
-			_stream = stream;
+			_writer = writer;
+			_reader = reader;
 		}
 
 		public int ReadMessageInt()
 		{
-			BinaryReader reader = new BinaryReader(_stream);
-			int message = reader.ReadInt32();
-			reader.Close();
+			int message = _reader.ReadInt32();
 			return message;
 		}
 		
 		public string ReadMessageString()
 		{
-			BinaryReader reader = new BinaryReader(_stream);
-			string message = reader.ReadString();
-			reader.Close();
+			string message = _reader.ReadString();
 			return message;
 		}
 
 		public void WriteMessage(string message)
 		{
-			BinaryWriter writer = new BinaryWriter(_stream);
-			writer.Write(message);
-			writer.Flush();
-			writer.Close();
+			_writer.Write(message);
+			_writer.Flush();
+			
 		}
 
 		public void SendFile(string path, File typeFile)
 		{
-			BinaryWriter writer = new BinaryWriter(_stream);
-			writer.Write(typeFile.ConvertFile(path));
-			writer.Flush();
-			writer.Close();
+			_writer.Write(typeFile.ConvertFile(path));
+			_writer.Flush();
 		}
 	}
 }
