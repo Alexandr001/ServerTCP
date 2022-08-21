@@ -60,7 +60,7 @@ namespace Server
 							throw new Exception("Нет такого режима работы!");
 					}
 					server.WriteMessage(listFiles); // Отправка списска файлов
-					string pathFile = server.ReadMessageString(); // Чтение пути файла
+					string pathFile = file.PathFolder + server.ReadMessageString(); // Чтение пути файла
 					server.WriteMessage(file.LengthFile(pathFile)); // Отправка длинны файла
 					server.SendFile(pathFile, file); // Отправка файла
 				}

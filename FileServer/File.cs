@@ -6,7 +6,7 @@ namespace Server.FileServer
 	public abstract class File
 	{
 		public abstract string PathFolder { get; }
-		public abstract byte[] ConvertFile(string name);
+		public abstract byte[] ConvertFile(string path);
 		
 		public string PrintNameFilesInFolder(string folderPath)
 		{
