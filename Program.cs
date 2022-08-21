@@ -8,19 +8,15 @@ using File = Server.FileServer.File;
 
 namespace Server
 {
-	// Подключается клиент и в отдельном потоке срабатывет метод
-		// Поток работает до того момента пока режим работы клиента не равен 0.
-	// Получает режим работы программы
-	// В зависимости от режима работы отправляет пути к файлам
-	// Получает путь к файлу и отправляет данный файл
-	
-	public class Program
+
+	public static class Program
 	{
 		private static BinaryWriter _writer;
 		private static BinaryReader _reader;
 		private static TcpListener _listener;
 		private static NetworkStream _stream;
 		private static TcpClient _client;
+		private static Server _server;
 		private const int PORT = 8888;
 		
 		public static void Main(string[] args)
@@ -32,47 +28,59 @@ namespace Server
 
 				while (true) {
 					Console.WriteLine("Ожидание подключений... ");
-
-					// получаем входящее подключение
+					
 					_client = _listener.AcceptTcpClient();
-					Console.WriteLine("Подключен клиент. Выполнение запроса...");
+					Console.WriteLine("Клиент подключен!");
 
-					// получаем сетевой поток для чтения и записи
 					_stream = _client.GetStream();
 					_writer = new BinaryWriter(_stream);
 					_reader = new BinaryReader(_stream);
 					
 					
-					Server server = new Server(_writer, _reader);
-					int operatingMode = server.ReadMessageInt(); // Считывание режима работы
-					string listFiles = null;
-					File file = null;
+					_server = new Server(_writer, _reader);
+					int operatingMode = Convert.ToInt32(_server.ReadString());
+					if (operatingMode == 0) {
+						Console.WriteLine("Слиент отключен! ОШИБКА!!!");
+						continue;
+					}
+					_server.PrintMessage($"Режим работы: {operatingMode}");
+					string listFiles;
+					File file;
 					switch (operatingMode) {
 						case 1:
 							file = new TxtFile();
-							listFiles = file.PrintNameFilesInFolder(file.PathFolder);
+							listFiles = file.GetNameFilesInFolder(file.PathFolder);
 							break;
 						case 2:
 							file = new BinaryFile();
-							listFiles = file.PrintNameFilesInFolder(file.PathFolder);
+							listFiles = file.GetNameFilesInFolder(file.PathFolder);
 							break;
 						default:
 							throw new Exception("Нет такого режима работы!");
 					}
-					server.WriteMessage(listFiles); // Отправка списска файлов
-					string pathFile = file.PathFolder + server.ReadMessageString(); // Чтение пути файла
-					server.WriteMessage(file.LengthFile(pathFile)); // Отправка длинны файла
-					server.SendFile(pathFile, file); // Отправка файла
+					_server.WriteMessage(listFiles);
+					_server.PrintMessage("Список файлов отправлен!\n" + listFiles);
+					string nameFile = _server.ReadString();
+					if (Convert.ToInt32(nameFile) == 0) {
+						continue;
+					}
+					string pathFile = file.PathFolder + nameFile;
+					_server.PrintMessage($"Путь к файлу: {pathFile}");
+					
+					_server.WriteMessage(file.LengthFile(pathFile));
+					_server.PrintMessage("Длинна файла отправлена!");
+					
+					_server.SendFile(pathFile, file);
+					_server.PrintMessage("Файл отправлен!");
 				}
 			} catch (Exception e) {
 				Console.WriteLine(e);
-				throw;
 			} finally {
 				_listener?.Stop();
-				_stream.Flush();
-				_stream.Close();
-				_reader.Close();
-				_writer.Close();
+				_stream?.Flush();
+				_stream?.Close();
+				_reader?.Close();
+				_writer?.Close();
 				
 			}
 		}
