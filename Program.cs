@@ -44,7 +44,7 @@ namespace Server
 					
 					
 					Server server = new Server(_writer, _reader);
-					int operatingMode = server.ReadMessageInt();
+					int operatingMode = server.ReadMessageInt(); // Считывание режима работы
 					string listFiles = null;
 					File file = null;
 					switch (operatingMode) {
@@ -56,10 +56,13 @@ namespace Server
 							file = new BinaryFile();
 							listFiles = file.PrintNameFilesInFolder(file.PathFolder);
 							break;
+						default:
+							throw new Exception("Нет такого режима работы!");
 					}
-					server.WriteMessage(listFiles);
-					string pathFile = server.ReadMessageString();
-					server.SendFile(pathFile, file);
+					server.WriteMessage(listFiles); // Отправка списска файлов
+					string pathFile = server.ReadMessageString(); // Чтение пути файла
+					server.WriteMessage(file.LengthFile(pathFile)); // Отправка длинны файла
+					server.SendFile(pathFile, file); // Отправка файла
 				}
 			} catch (Exception e) {
 				Console.WriteLine(e);

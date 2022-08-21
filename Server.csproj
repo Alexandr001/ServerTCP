@@ -47,11 +47,9 @@
         <Compile Include="Server.cs" />
     </ItemGroup>
     <ItemGroup>
+      <Content Include="BinaryFile\NewFile1.bin" />
       <Content Include="TxtFile\NewFile1.txt" />
       <Content Include="TxtFile\NewFile2.txt" />
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="BinaryFile" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

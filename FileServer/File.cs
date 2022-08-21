@@ -13,11 +13,17 @@ namespace Server.FileServer
 			Console.WriteLine("Доступные файлы:");
 			string files = null;
 			foreach (string path in Directory.GetFiles(folderPath)) {
-				string name = path.Substring(path.Length - (path.Length - folderPath.Length) + 1);
+				string name = path.Substring(path.Length - (path.Length - folderPath.Length));
 				Console.WriteLine(name);
 				files += name + "\n";
 			}
 			return files;
+		}
+
+		public int LengthFile(string pathFile)
+		{
+			FileInfo fileInfo = new FileInfo(pathFile);
+			return (int) fileInfo.Length;
 		}
 	}
 }

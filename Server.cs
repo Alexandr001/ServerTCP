@@ -32,7 +32,12 @@ namespace Server
 		{
 			_writer.Write(message);
 			_writer.Flush();
-			
+		}
+		
+		public void WriteMessage(int message)
+		{
+			_writer.Write(message);
+			_writer.Flush();
 		}
 
 		public void SendFile(string path, File typeFile)
