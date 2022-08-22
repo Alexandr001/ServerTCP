@@ -11,14 +11,17 @@ namespace Server
 
 	public static class Program
 	{
+		private const int OPERATING_ERROR = 0;
+		private const int PORT = 8888;
+
 		private static BinaryWriter _writer;
 		private static BinaryReader _reader;
 		private static TcpListener _listener;
 		private static NetworkStream _stream;
 		private static TcpClient _client;
 		private static Server _server;
-		private const int PORT = 8888;
-		
+		private static File _file;
+
 		public static void Main(string[] args)
 		{
 			try {
@@ -39,38 +42,26 @@ namespace Server
 					
 					_server = new Server(_writer, _reader);
 					int operatingMode = Convert.ToInt32(_server.ReadString());
-					if (operatingMode == 0) {
+					if (operatingMode == OPERATING_ERROR) {
 						Console.WriteLine("Слиент отключен! ОШИБКА!!!");
 						continue;
 					}
+					_file = File.FileFactory(operatingMode);
 					_server.PrintMessage($"Режим работы: {operatingMode}");
-					string listFiles;
-					File file;
-					switch (operatingMode) {
-						case 1:
-							file = new TxtFile();
-							listFiles = file.GetNameFilesInFolder(file.PathFolder);
-							break;
-						case 2:
-							file = new BinaryFile();
-							listFiles = file.GetNameFilesInFolder(file.PathFolder);
-							break;
-						default:
-							throw new Exception("Нет такого режима работы!");
-					}
+					string listFiles = _file.GetNameFilesInFolder(_file.PathFolder);
 					_server.WriteMessage(listFiles);
 					_server.PrintMessage("Список файлов отправлен!\n" + listFiles);
 					string nameFile = _server.ReadString();
-					if (Convert.ToInt32(nameFile) == 0) {
+					if (nameFile == Convert.ToString(OPERATING_ERROR)) {
 						continue;
 					}
-					string pathFile = file.PathFolder + nameFile;
+					string pathFile = _file.PathFolder + nameFile;
 					_server.PrintMessage($"Путь к файлу: {pathFile}");
 					
-					_server.WriteMessage(file.LengthFile(pathFile));
+					_server.WriteMessage(_file.LengthFile(pathFile));
 					_server.PrintMessage("Длинна файла отправлена!");
 					
-					_server.SendFile(pathFile, file);
+					_server.SendFile(pathFile, _file);
 					_server.PrintMessage("Файл отправлен!");
 				}
 			} catch (Exception e) {

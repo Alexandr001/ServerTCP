@@ -7,6 +7,17 @@ namespace Server.FileServer
 	{
 		public abstract string PathFolder { get; }
 		public abstract byte[] ConvertFile(string path);
+		public static File FileFactory(int mode)
+		{
+			switch (mode) {
+				case (int) Mode.BIN_FILE:
+					return new BinaryFile();
+				case (int) Mode.TXT_FILE:
+					return new TxtFile();
+				default:
+					throw new Exception("Неправильный режим работы!");
+			}
+		}
 		public string GetNameFilesInFolder(string folderPath)
 		{
 			string files = null;
